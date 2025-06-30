@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Whitelist Test</title>
+</head>
+<body>
+    <h1>Time Spoof Test</h1>
+    <p>Current domain: <span id="domain"></span></p>
+    <p>Current time: <span id="time"></span></p>
+    <p>new Date(): <span id="newDate"></span></p>
+    
+    <script>
+        document.getElementById("domain").textContent = window.location.hostname;
+        document.getElementById("time").textContent = new Date().toString();
+        document.getElementById("newDate").textContent = new Date();
+        
+        // Update every second
+        setInterval(() => {
+            document.getElementById("time").textContent = new Date().toString();
+            document.getElementById("newDate").textContent = new Date();
+        }, 1000);
+    </script>
+</body>
+</html>

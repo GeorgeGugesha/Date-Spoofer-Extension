@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Date Spoofer</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      width: 380px;
+      height: 480px;
+      background: #ffffff;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .container {
+      background: #ffffff;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 32px 28px;
+      width: 100%;
+      height: 480px;
+      min-height: 480px;
+      max-height: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin: 0;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #374151;
+      flex: 1;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .input-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #374151;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* Modern Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 56px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #e5e7eb;
+      border-radius: 32px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: '';
+      height: 26px;
+      width: 26px;
+      left: 3px;
+      bottom: 3px;
+      background: #ffffff;
+      border-radius: 50%;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    input:checked + .slider {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(22, 163, 74, 0.2);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+    }
+
+    input:focus + .slider {
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(22, 163, 74, 0.2);
+    }
+
+    /* Date Input */
+    .date-input {
+      width: 100%;
+      max-width: 200px;
+      font-size: 16px;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      background: #ffffff;
+      color: #1f2937;
+      font-weight: 500;
+      outline: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .date-input:hover {
+      border-color: #d1d5db;
+    }
+
+    .date-input:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+
+    /* Whitelist Section */
+    .whitelist-section {
+      border-top: 1px solid #f3f4f6;
+      padding-top: 20px;
+      margin-top: 4px;
+    }
+
+    .help-text {
+      font-size: 12px;
+      color: #9ca3af;
+      line-height: 1.4;
+      margin-top: 6px;
+    }
+
+    .textarea {
+      width: 100%;
+      min-height: 80px;
+      max-height: 120px;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 14px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+      font-weight: 500;
+      resize: vertical;
+      outline: none;
+      transition: all 0.2s ease;
+      line-height: 1.5;
+    }
+
+    .textarea:hover {
+      border-color: #d1d5db;
+    }
+
+    .textarea:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+
+    .textarea::placeholder {
+      color: #9ca3af;
+      font-weight: 400;
+    }
+
+    /* Status */
+    .status {
+      padding: 16px 20px;
+      border-radius: 16px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .status.enabled {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      color: #065f46;
+      border-color: #6ee7b7;
+    }
+
+    .status.disabled {
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      color: #991b1b;
+      border-color: #f87171;
+    }
+
+    .status.transitioning {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      color: #92400e;
+      border-color: #f59e0b;
+    }
+
+    .status-icon {
+      font-size: 18px;
+      display: inline-block;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .container {
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="title">
+        <span>🕐</span>
+        Date Spoofer
+      </h1>
+      <p class="subtitle">Spoof client-side time to a custom date</p>
+    </header>
+    
+    <section class="section">
+      <div class="control-row">
+        <label for="toggle" class="label">Enable Time Spoofing</label>
+        <label class="switch">
+          <input type="checkbox" id="toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+    
+    <section class="section">
+      <div class="control-row">
+        <label for="quickToggle" class="label">Spoof to Tomorrow (24h)</label>
+        <label class="switch">
+          <input type="checkbox" id="quickToggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+    
+    <section class="section">
+      <div class="input-group">
+        <label for="calendar" class="input-label">Custom Spoof Date</label>
+        <input type="date" id="calendar" class="date-input" />
+      </div>
+    </section>
+    
+    <section class="whitelist-section">
+      <div class="section">
+        <div class="control-row">
+          <label for="whitelistToggle" class="label">Enable Whitelist</label>
+          <label class="switch">
+            <input type="checkbox" id="whitelistToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <p class="help-text" style="text-align: center;">Only spoof time on specified domains</p>
+      </div>
+      
+      <div class="section">
+        <div class="input-group">
+          <label for="whitelist" class="input-label">Allowed Domains</label>
+          <textarea 
+            id="whitelist" 
+            class="textarea" 
+            placeholder="example.com&#10;subdomain.site.org&#10;localhost"
+            spellcheck="false"
+          ></textarea>
+          <p class="help-text">One domain per line. Subdomains included automatically.</p>
+        </div>
+      </div>
+    </section>
+    
+    <footer class="status" id="status">
+      <span class="status-icon" id="statusIcon">❌</span>
+      <span id="statusText">Time spoofing is DISABLED</span>
+    </footer>
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
