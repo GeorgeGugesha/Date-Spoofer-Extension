@@ -116,6 +116,9 @@ class TimeSpooferPopup {
       this.elements.whitelistToggle.checked = Boolean(whitelistEnabled);
       this.elements.whitelist.value = whitelistDomains || this.config.DEFAULT_DOMAINS;
 
+      // Update calendar state based on quick toggle setting
+      this.updateCalendarState(isQuickEnabled);
+
       // Save default values if needed
       await this.saveDefaultsIfNeeded(settings, dateToUse);
     } catch (error) {
@@ -213,6 +216,14 @@ class TimeSpooferPopup {
   }
 
   /**
+   * Update calendar input state based on quick toggle status
+   * @param {boolean} isQuickEnabled - Whether quick toggle is enabled
+   */
+  updateCalendarState(isQuickEnabled) {
+    this.elements.calendar.disabled = isQuickEnabled;
+  }
+
+  /**
    * Handle main spoofing toggle changes
    */
   async handleSpoofToggle() {
@@ -222,6 +233,9 @@ class TimeSpooferPopup {
       if (isEnabled) {
         await this.handleToggleMutualExclusivity('spoof');
       }
+      
+      // Update calendar state - enable when main toggle is used (quick toggle is disabled)
+      this.updateCalendarState(this.elements.quickToggle.checked);
       
       const anyEnabled = isEnabled || this.elements.quickToggle.checked;
       this.updateStatus(anyEnabled, 'transitioning');
@@ -258,6 +272,9 @@ class TimeSpooferPopup {
         await storage.set({ [CONSTANTS.STORAGE_KEYS.QUICK_SPOOF_ENABLED]: false });
         this.sendMessage({ toggleQuickSpoof: false });
       }
+      
+      // Update calendar state based on quick toggle status
+      this.updateCalendarState(isQuickEnabled);
       
       const anyEnabled = isQuickEnabled || this.elements.toggle.checked;
       this.updateStatus(anyEnabled, 'transitioning');
