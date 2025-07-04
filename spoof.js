@@ -20,7 +20,7 @@
   class DateSpoofer {
     constructor() {
       this.originalDate = window.Date;
-      this.targetTime = null;
+      this.timeOffset = 0; // Changed from targetTime to timeOffset
       this.isActive = false;
       
       this.init();
@@ -31,7 +31,7 @@
      */
     init() {
       try {
-        this.calculateTargetTime();
+        this.calculateTimeOffset(); // Changed from calculateTargetTime
         this.createSpoofedDate();
         this.installSpoofing();
         this.setupCleanup();
@@ -44,14 +44,14 @@
     }
 
     /**
-     * Calculate target time from spoof date
+     * Calculate time offset from spoof date
      */
-    calculateTargetTime() {
+    calculateTimeOffset() {
       const spoofDate = document.documentElement.getAttribute('data-spoof-date');
+      const now = new this.originalDate();
       
       if (spoofDate && /^\d{4}-\d{2}-\d{2}$/.test(spoofDate)) {
         // Use provided spoof date
-        const now = new this.originalDate();
         const [year, month, day] = spoofDate.split('-').map(Number);
         
         // Validate date components
@@ -70,7 +70,7 @@
           if (targetDate.getFullYear() === year && 
               targetDate.getMonth() === month - 1 && 
               targetDate.getDate() === day) {
-            this.targetTime = targetDate.getTime();
+            this.timeOffset = targetDate.getTime() - now.getTime();
             return;
           }
         }
@@ -79,7 +79,7 @@
       // Fallback to tomorrow
       const tomorrow = new this.originalDate();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      this.targetTime = tomorrow.getTime();
+      this.timeOffset = tomorrow.getTime() - now.getTime();
     }
 
     /**
@@ -87,13 +87,14 @@
      */
     createSpoofedDate() {
       const originalDate = this.originalDate;
-      const targetTime = this.targetTime;
+      const getTimeOffset = () => this.timeOffset;
 
       this.spoofedDate = function SpoofedDate(...args) {
         // Handle different Date constructor patterns
         if (args.length === 0) {
-          // new Date() - return spoofed time
-          return new originalDate(targetTime);
+          // new Date() - return spoofed time (current time + offset)
+          const currentTime = originalDate.now();
+          return new originalDate(currentTime + getTimeOffset());
         } else if (args.length === 1) {
           const arg = args[0];
           
@@ -104,7 +105,7 @@
             
             // If timestamp is within 1 hour of current time, spoof it
             if (timeDiff < 3600000) { // 1 hour in milliseconds
-              return new originalDate(targetTime);
+              return new originalDate(currentTime + getTimeOffset());
             }
           }
           
@@ -117,7 +118,10 @@
       };
 
       // Copy static methods and properties
-      this.spoofedDate.now = () => targetTime;
+      this.spoofedDate.now = () => {
+        const currentTime = originalDate.now();
+        return currentTime + getTimeOffset();
+      };
       this.spoofedDate.UTC = originalDate.UTC;
       this.spoofedDate.parse = originalDate.parse;
       this.spoofedDate.prototype = originalDate.prototype;
@@ -189,7 +193,7 @@
         // Clear internal references
         this.originalDate = null;
         this.spoofedDate = null;
-        this.targetTime = null;
+        this.timeOffset = 0;
         this.isActive = false;
       } catch (error) {
         console.error('Error during cleanup:', error);
